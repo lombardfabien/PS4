@@ -326,7 +326,7 @@ def simulation_without_antibiotic(num_bacteria,
             patient_time_steps.append(patient.update())
             #print ("patient list at time steps",i,"Number of trials", p, patient_time_steps)
         populations.insert(p,patient_time_steps)
-    print("trial 0",populations[0],"\n", populations[0][1], "\ntrial 1", populations[1],"\n",populations[1][3])
+    #print("trial 0",populations[0],"\n", populations[0][1], "\ntrial 1", populations[1],"\n",populations[1][3])
 
     trial =0
     x_coords = []
@@ -370,8 +370,15 @@ def calc_pop_std(populations, t):
         float: the standard deviation of populations across different trials at
              a specific time step
     """
+    average_population = calc_pop_avg(populations ,t)
+    tot = 0.0
+    for population in populations:
+        tot += (population[t] - average_population) ** 2
+    std = (tot/len(populations))**0.5
+    return std
     pass  # TODO
 
+#print (calc_pop_std(populations,0),calc_pop_std(populations,1) )
 
 def calc_95_ci(populations, t):
     """
@@ -394,8 +401,30 @@ def calc_95_ci(populations, t):
 
         I.e., you should return a tuple containing (mean, width)
     """
+    means =0
+    std =0
+    samplesize = 15
+    bad_estimate = 0
+    num_trials = 50
+    """ average of the bacteria population"""
+    means = calc_pop_avg (populations, t)
+    """ average, stadnard deviation and standard error of sample """
+    for i in range (num_trials):
+        sample = random.sample(populations, samplesize)
+        #print (len(sample))
+        sample_means = calc_pop_avg(sample,t)
+        sample_std = calc_pop_std (sample,t)
+        se = sample_std / (samplesize**0.5)
+        width = 1.96*se
+        if abs (means - sample_means ) > 1.96*se:
+            bad_estimate+=1
+    print ("Mean of sample:", sample_means,"\nstandard deviation of sample:", sample_std,"\nestimate Standard error (SEM):",se)
+    print ("fraction outside 95%confidence interval=", bad_estimate / num_trials )
+    return (sample_means,width )
     pass  # TODO
 
+#for i in [0, 1, 10, 100, 200, 300]:
+calc_95_ci(populations, i)
 
 ##########################
 # PROBLEM 4
